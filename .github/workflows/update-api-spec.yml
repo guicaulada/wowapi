@@ -24,9 +24,7 @@ jobs:
       - name: Commit and push file changes
         run: |
           git checkout -b spec-api-update
-          git add profile-apis.json
-          git add retail-game-data-apis.json
-          git add classic-game-data-apis.json
+          git add api-spec/profile-apis.json api-spec/retail-game-data-apis.json api-spec/classic-game-data-apis.json
           git commit -m "Update api-spec"
           git push origin spec-api-update
       
