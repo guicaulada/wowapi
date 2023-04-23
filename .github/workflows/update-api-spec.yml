@@ -1,0 +1,34 @@
+name: Update API Spec
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  download-commit-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+
+      - name: Download profile api spec
+        run: curl -o api-spec/profile-apis.json https://develop.battle.net/api/pages/content/documentation/world-of-warcraft/profile-apis.json
+
+      - name: Download retail game data api spec
+        run: curl -o api-spec/retail-game-data-apis.json https://develop.battle.net/api/pages/content/documentation/world-of-warcraft/game-data-apis.json
+
+      - name: Download classic game data api spec
+        run: curl -o api-spec/classic-game-data-apis.json https://develop.battle.net/api/pages/content/documentation/world-of-warcraft-classic/game-data-apis.json
+
+      - name: Commit and push file changes
+        run: |
+          git checkout -b spec-api-update
+          git add profile-apis.json
+          git add retail-game-data-apis.json
+          git add classic-game-data-apis.json
+          git commit -m "Update api-spec"
+          git push origin spec-api-update
+      
+      - name: Create pull request
+        run: |
+          gh pr create --title "Update api-spec" --body "Update api-spec" --base main --head spec-api-update
