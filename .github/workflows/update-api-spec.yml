@@ -24,7 +24,7 @@ jobs:
       - name: Commit and push file changes
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com""
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b spec-api-update
           git add api-spec/profile-apis.json api-spec/retail-game-data-apis.json api-spec/classic-game-data-apis.json
           git commit -m "Update api-spec"
