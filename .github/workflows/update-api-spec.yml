@@ -33,3 +33,5 @@ jobs:
       - name: Create pull request
         run: |
           gh pr create --title "Update api-spec" --body "Update api-spec" --base main --head spec-api-update
+        env:
+          GH_TOKEN: ${{ github.token }}
