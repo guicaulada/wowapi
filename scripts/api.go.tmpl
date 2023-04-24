@@ -1,0 +1,62 @@
+// Code generated. DO NOT EDIT.
+// To generate use: go generate
+//go:generate go run ../../scripts/gen.go {{.SpecFile}} api.go {{.PackageName}}
+package {{.PackageName}}
+
+import (
+	"fmt"
+	"net/http"
+	"io/ioutil"
+	"path/filepath"
+)
+
+const (
+	BlizzardAPIUrl = "https://us.api.blizzard.com"
+)
+
+type Client struct {
+	token string
+}
+
+func stringWithDefault(s string, d string) string {
+	if s != "" {
+		return d
+	}
+	return s
+}
+
+func getResponseBody(req *http.Request) (string, error) {
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+{{range .Spec.Resources}}{{$resource := .}}{{range .Methods}}
+// Resource: {{$resource.Name}}
+// Name: {{.Name}}
+// Description: {{removeHtml .Description}}
+// Path: {{.Path}}
+// HttpMethod: {{.HttpMethod}}
+// CnRegion: {{.CnRegion}}
+// Parameters: {{range .Parameters}}{{if not (contains .Description "(example search field)")}}
+//   {{sanitize .Name}}: {{.Description}} ({{replace .Type "integer" "int"}}) {{if .Required}}(required){{end}} {{if .DefaultValue}}(default: {{.DefaultValue}}){{end}}{{end}}{{end}}{{if contains .Path "/search/"}}
+//	 search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search{{end}}
+func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := .Parameters}}{{if not (contains .Description "(example search field)")}}{{if $i}}, {{end}}{{sanitize $p.Name}} {{replace $p.Type "integer" "int"}}{{end}}{{end}}{{if contains .Path "/search/"}}, search string{{end}}) (string, error) {
+	req, err := http.NewRequest("{{.HttpMethod}}", filepath.Join(BlizzardAPIUrl, fmt.Sprintf({{sprintUrl .Path}})), nil)
+	if err != nil {
+		return "", err
+	}
+	{{if .HttpMethod | eq "GET"}}
+	q := req.URL.Query() {{range .Parameters}}{{if not (isPathParam .Name)}}{{if not (contains .Description "(example search field)")}}
+	q.Add("{{.Name}}", stringWithDefault(fmt.Sprint({{sanitize .Name}}), "{{.DefaultValue}}")){{end}}{{end}}{{end}}
+	q.Add("access-token", c.token)
+	{{if contains .Path "/search/"}}req.URL.RawQuery = fmt.Sprintf("%s&%s", q.Encode(), search){{else}}req.URL.RawQuery = q.Encode(){{end}}
+	{{end}}
+	return getResponseBody(req)
+}
+{{end}}{{end}}
