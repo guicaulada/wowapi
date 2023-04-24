@@ -46,7 +46,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b bot/spec-api-update
-          git add api-spec/profile-apis.json api-spec/retail-game-data-apis.json api-spec/classic-game-data-apis.json
+          git add .
           git commit -m "Update api-spec"
           git push -f origin bot/spec-api-update
       
