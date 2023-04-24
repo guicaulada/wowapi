@@ -4,59 +4,116 @@
 package {{.PackageName}}
 
 import (
-	"fmt"
-	"net/http"
-	"io/ioutil"
-	"path/filepath"
+  "encoding/json"
+  "fmt"
+  "net/http"
+  "net/url"
+  "strings"
 )
 
 const (
-	BlizzardAPIUrl = "https://us.api.blizzard.com"
+  BlizzardAPIUrl = "https://%s.api.blizzard.com"
+  BlizzardTokenUrl = "https://oauth.battle.net/token"
 )
 
+type AccessToken struct {
+  AccessToken string `json:"access_token"`
+  TokenType string `json:"token_type"`
+  ExpiresIn int `json:"expires_in"`
+  Scope string `json:"scope"`
+}
+
 type Client struct {
-	token string
+  clientId string
+  clientSecret string
+  accessToken string
+  region string
+  url string
+  httpClient *http.Client
 }
 
 func stringWithDefault(s string, d string) string {
-	if s != "" {
-		return d
-	}
-	return s
+  if s != "" {
+    return d
+  }
+  return s
 }
 
-func getResponseBody(req *http.Request) (string, error) {
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
+func (c *Client) getAccessToken() error {
+  params := url.Values{}
+  params.Add("grant_type", `client_credentials`)
+  body := strings.NewReader(params.Encode())
+
+  req, err := http.NewRequest("POST", BlizzardTokenUrl, body)
+  if err != nil {
+    return err
+  }
+  req.SetBasicAuth(c.clientId, c.clientSecret)
+  req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+  resp, err := c.httpClient.Do(req)
+  if err != nil {
+    return err
+  }
+  defer resp.Body.Close()
+
+  token := &AccessToken{}
+  if err := json.NewDecoder(resp.Body).Decode(token); err != nil {
+    return err
+  }
+  c.accessToken = token.AccessToken
+  return nil
+}
+
+func NewClient(clientId string, clientSecret string, region string, httpClient *http.Client) (*Client, error) {
+  if httpClient == nil {
+    httpClient = http.DefaultClient
+  }
+  client := &Client{
+    clientId: clientId,
+    clientSecret: clientSecret,
+    httpClient: httpClient,
+    region: region,
+    url: fmt.Sprintf(BlizzardAPIUrl, region),
+  }
+  if err := client.getAccessToken(); err != nil {
+    return nil, err
+  }
+  return client, nil
 }
 {{range .Spec.Resources}}{{$resource := .}}{{range .Methods}}
 // Resource: {{$resource.Name}}
+//
 // Name: {{.Name}}
+//
 // Description: {{removeHtml .Description}}
+//
 // Path: {{.Path}}
+//
 // HttpMethod: {{.HttpMethod}}
+//
 // CnRegion: {{.CnRegion}}
+//
 // Parameters: {{range .Parameters}}{{if not (contains .Description "(example search field)")}}
 //   {{sanitize .Name}}: {{.Description}} ({{replace .Type "integer" "int"}}) {{if .Required}}(required){{end}} {{if .DefaultValue}}(default: {{.DefaultValue}}){{end}}{{end}}{{end}}{{if contains .Path "/search/"}}
-//	 search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search{{end}}
-func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := .Parameters}}{{if not (contains .Description "(example search field)")}}{{if $i}}, {{end}}{{sanitize $p.Name}} {{replace $p.Type "integer" "int"}}{{end}}{{end}}{{if contains .Path "/search/"}}, search string{{end}}) (string, error) {
-	req, err := http.NewRequest("{{.HttpMethod}}", filepath.Join(BlizzardAPIUrl, fmt.Sprintf({{sprintUrl .Path}})), nil)
-	if err != nil {
-		return "", err
-	}
-	{{if .HttpMethod | eq "GET"}}
-	q := req.URL.Query() {{range .Parameters}}{{if not (isPathParam .Name)}}{{if not (contains .Description "(example search field)")}}
-	q.Add("{{.Name}}", stringWithDefault(fmt.Sprint({{sanitize .Name}}), "{{.DefaultValue}}")){{end}}{{end}}{{end}}
-	q.Add("access-token", c.token)
-	{{if contains .Path "/search/"}}req.URL.RawQuery = fmt.Sprintf("%s&%s", q.Encode(), search){{else}}req.URL.RawQuery = q.Encode(){{end}}
-	{{end}}
-	return getResponseBody(req)
+//   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search{{end}}
+func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := .Parameters}}{{if not (contains .Description "(example search field)")}}{{if $i}}, {{end}}{{sanitize $p.Name}} {{replace $p.Type "integer" "int"}}{{end}}{{end}}{{if contains .Path "/search/"}}, search string{{end}}) (*http.Response, error) {
+  path, err := url.JoinPath(c.url, fmt.Sprintf({{sprintUrl .Path}}))
+  if err != nil {
+    return nil, err
+  }
+  
+  req, err := http.NewRequest("{{.HttpMethod}}", path, nil)
+  if err != nil {
+    return nil, err
+  }
+  {{if .HttpMethod | eq "GET"}}
+  q := req.URL.Query() {{range .Parameters}}{{if not (isPathParam .Name)}}{{if not (contains .Description "(example search field)")}}
+  q.Add("{{.Name}}", stringWithDefault(fmt.Sprint({{sanitize .Name}}), "{{.DefaultValue}}")){{end}}{{end}}{{end}}
+  q.Add("access-token", c.accessToken)
+  {{if contains .Path "/search/"}}req.URL.RawQuery = fmt.Sprintf("%s&%s", q.Encode(), search){{else}}req.URL.RawQuery = q.Encode(){{end}}
+  {{end}}
+  req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.accessToken))
+  return c.httpClient.Do(req)
 }
 {{end}}{{end}}
