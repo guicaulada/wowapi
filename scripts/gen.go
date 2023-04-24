@@ -95,7 +95,7 @@ func main() {
 	spec := &Spec{}
 	err = json.Unmarshal(contents, spec)
 	if err != nil {
-		log.Fatalln("failed to unmarshal spec file", err)
+		log.Fatalln("failed to unmarshal spec file", err, string(contents))
 	}
 
 	funcs := template.FuncMap{
