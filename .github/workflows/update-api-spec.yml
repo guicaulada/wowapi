@@ -30,18 +30,18 @@ jobs:
         id: changes
         run: |
           if [ -z "$(git status --porcelain)" ]; then 
-            echo ::set-output name=changed::0
+            echo "changed=0" >> $GITHUB_ENV
           else 
-            echo ::set-output name=changed::1
+            echo "changed=1" >> $GITHUB_ENV
           fi
 
       - name: Generate api source code
-        if: steps.changes.outputs.changed == 1
+        if: env.changed == 1
         run: |
           go generate ./...
 
       - name: Commit and push file changes
-        if: steps.changes.outputs.changed == 1
+        if: env.changed == 1
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -51,7 +51,7 @@ jobs:
           git push -f origin bot/spec-api-update
       
       - name: Create pull request
-        if: steps.changes.outputs.changed == 1
+        if: env.changed == 1
         run: |
           gh pr create --title "Update api-spec" --body "Update api-spec" --base main --head bot/spec-api-update
         env:
