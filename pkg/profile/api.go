@@ -1014,29 +1014,3 @@ func (c *Client) GuildAchievements(realmSlug string, nameSlug string, namespace 
 	
 	return getResponseBody(req)
 }
-
-// Resource: Guild API
-// Name: Guild Roster
-// Description: Returns a single guild's roster by its name and realm.
-// Path: /data/wow/guild/{realmSlug}/{nameSlug}/roster
-// HttpMethod: GET
-// CnRegion: false
-// Parameters: 
-//   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
-//   nameSlug: The slug of the guild. (string) (required) (default: guild-slug)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildRoster(realmSlug string, nameSlug string, namespace string, locale string) (string, error) {
-	req, err := http.NewRequest("GET", filepath.Join(BlizzardAPIUrl, fmt.Sprintf("/data/wow/guild/%v/%v/roster", realmSlug, nameSlug)), nil)
-	if err != nil {
-		return "", err
-	}
-	
-	q := req.URL.Query() 
-	q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-	q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
-	q.Add("access-token", c.token)
-	req.URL.RawQuery = q.Encode()
-	
-	return getResponseBody(req)
-}
