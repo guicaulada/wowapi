@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.20
+          go-version: "1.20"
 
       - name: Download profile api spec
         run: curl -o api-spec/profile-apis.json https://develop.battle.net/api/pages/content/documentation/world-of-warcraft/profile-apis.json
