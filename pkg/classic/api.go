@@ -28,6 +28,7 @@ type Client struct {
   clientSecret string
   accessToken string
   region string
+  locale string
   url string
   httpClient *http.Client
 }
@@ -65,7 +66,7 @@ func (c *Client) getAccessToken() error {
   return nil
 }
 
-func NewClient(clientId string, clientSecret string, region string, httpClient *http.Client) (*Client, error) {
+func NewClient(clientId string, clientSecret string, region string, locale string, httpClient *http.Client) (*Client, error) {
   if httpClient == nil {
     httpClient = http.DefaultClient
   }
@@ -74,6 +75,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
     clientSecret: clientSecret,
     httpClient: httpClient,
     region: region,
+    locale: locale,
     url: fmt.Sprintf(BlizzardAPIUrl, region),
   }
   if err := client.getAccessToken(); err != nil {
@@ -96,9 +98,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
 //
 // Parameters: 
 //   connectedRealmId: The ID of the connected realm. (int) (required) (default: 4372)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AuctionHouseIndex(connectedRealmId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) AuctionHouseIndex(connectedRealmId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/connected-realm/%v/auctions/index", connectedRealmId))
   if err != nil {
     return nil, err
@@ -110,8 +110,8 @@ func (c *Client) AuctionHouseIndex(connectedRealmId int, namespace string, local
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -134,9 +134,7 @@ func (c *Client) AuctionHouseIndex(connectedRealmId int, namespace string, local
 // Parameters: 
 //   connectedRealmId: The ID of the connected realm. (int) (required) (default: 4372)
 //   auctionHouseId: The ID of the auction house. (int) (required) (default: 2)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Auctions(connectedRealmId int, auctionHouseId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Auctions(connectedRealmId int, auctionHouseId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/connected-realm/%v/auctions/%v", connectedRealmId, auctionHouseId))
   if err != nil {
     return nil, err
@@ -148,8 +146,8 @@ func (c *Client) Auctions(connectedRealmId int, auctionHouseId int, namespace st
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -170,9 +168,7 @@ func (c *Client) Auctions(connectedRealmId int, auctionHouseId int, namespace st
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ConnectedRealmsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) ConnectedRealmsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/connected-realm/index", ))
   if err != nil {
     return nil, err
@@ -184,8 +180,8 @@ func (c *Client) ConnectedRealmsIndex(namespace string, locale string) (*http.Re
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -207,9 +203,7 @@ func (c *Client) ConnectedRealmsIndex(namespace string, locale string) (*http.Re
 //
 // Parameters: 
 //   connectedRealmId: The ID of the connected realm. (int) (required) (default: 4388)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ConnectedRealm(connectedRealmId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) ConnectedRealm(connectedRealmId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/connected-realm/%v", connectedRealmId))
   if err != nil {
     return nil, err
@@ -221,8 +215,8 @@ func (c *Client) ConnectedRealm(connectedRealmId int, namespace string, locale s
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -243,11 +237,10 @@ func (c *Client) ConnectedRealm(connectedRealmId int, namespace string, locale s
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
 //   orderby: The field to sort the result set by. (string)  (default: id)
 //   page: The result page number. (int)  (default: 1)
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search
-func (c *Client) ConnectedRealmsSearch(namespace string, orderby string, page int, search string) (*http.Response, error) {
+func (c *Client) ConnectedRealmsSearch(orderby string, page int, search string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/search/connected-realm", ))
   if err != nil {
     return nil, err
@@ -259,7 +252,7 @@ func (c *Client) ConnectedRealmsSearch(namespace string, orderby string, page in
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
   q.Add("orderby", stringWithDefault(fmt.Sprint(orderby), "id"))
   q.Add("_page", stringWithDefault(fmt.Sprint(page), "1"))
   q.Add("access-token", c.accessToken)
@@ -282,9 +275,7 @@ func (c *Client) ConnectedRealmsSearch(namespace string, orderby string, page in
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureFamiliesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureFamiliesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/creature-family/index", ))
   if err != nil {
     return nil, err
@@ -296,8 +287,8 @@ func (c *Client) CreatureFamiliesIndex(namespace string, locale string) (*http.R
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -319,9 +310,7 @@ func (c *Client) CreatureFamiliesIndex(namespace string, locale string) (*http.R
 //
 // Parameters: 
 //   creatureFamilyId: The ID of the creature family. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureFamily(creatureFamilyId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureFamily(creatureFamilyId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/creature-family/%v", creatureFamilyId))
   if err != nil {
     return nil, err
@@ -333,8 +322,8 @@ func (c *Client) CreatureFamily(creatureFamilyId int, namespace string, locale s
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -355,9 +344,7 @@ func (c *Client) CreatureFamily(creatureFamilyId int, namespace string, locale s
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureTypesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureTypesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/creature-type/index", ))
   if err != nil {
     return nil, err
@@ -369,8 +356,8 @@ func (c *Client) CreatureTypesIndex(namespace string, locale string) (*http.Resp
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -392,9 +379,7 @@ func (c *Client) CreatureTypesIndex(namespace string, locale string) (*http.Resp
 //
 // Parameters: 
 //   creatureTypeId: The ID of the creature type. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureType(creatureTypeId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureType(creatureTypeId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/creature-type/%v", creatureTypeId))
   if err != nil {
     return nil, err
@@ -406,8 +391,8 @@ func (c *Client) CreatureType(creatureTypeId int, namespace string, locale strin
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -429,9 +414,7 @@ func (c *Client) CreatureType(creatureTypeId int, namespace string, locale strin
 //
 // Parameters: 
 //   creatureId: The ID of the creature. (int) (required) (default: 30)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Creature(creatureId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Creature(creatureId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/creature/%v", creatureId))
   if err != nil {
     return nil, err
@@ -443,8 +426,8 @@ func (c *Client) Creature(creatureId int, namespace string, locale string) (*htt
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -465,11 +448,10 @@ func (c *Client) Creature(creatureId int, namespace string, locale string) (*htt
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-us)
 //   orderby: The field to sort the result set by. (string)  (default: id)
 //   page: The result page number. (int)  (default: 1)
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search
-func (c *Client) CreatureSearch(namespace string, orderby string, page int, search string) (*http.Response, error) {
+func (c *Client) CreatureSearch(orderby string, page int, search string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/search/creature", ))
   if err != nil {
     return nil, err
@@ -481,7 +463,7 @@ func (c *Client) CreatureSearch(namespace string, orderby string, page int, sear
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-us"))
+  q.Add("namespace", fmt.Sprintf("static-%s", c.region))
   q.Add("orderby", stringWithDefault(fmt.Sprint(orderby), "id"))
   q.Add("_page", stringWithDefault(fmt.Sprint(page), "1"))
   q.Add("access-token", c.accessToken)
@@ -505,9 +487,7 @@ func (c *Client) CreatureSearch(namespace string, orderby string, page int, sear
 //
 // Parameters: 
 //   creatureDisplayId: The ID of the creature display. (int) (required) (default: 30)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureDisplayMedia(creatureDisplayId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureDisplayMedia(creatureDisplayId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/creature-display/%v", creatureDisplayId))
   if err != nil {
     return nil, err
@@ -519,8 +499,8 @@ func (c *Client) CreatureDisplayMedia(creatureDisplayId int, namespace string, l
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -542,9 +522,7 @@ func (c *Client) CreatureDisplayMedia(creatureDisplayId int, namespace string, l
 //
 // Parameters: 
 //   creatureFamilyId: The ID of the creature family. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CreatureFamilyMedia(creatureFamilyId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CreatureFamilyMedia(creatureFamilyId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/creature-family/%v", creatureFamilyId))
   if err != nil {
     return nil, err
@@ -556,8 +534,8 @@ func (c *Client) CreatureFamilyMedia(creatureFamilyId int, namespace string, loc
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -578,9 +556,7 @@ func (c *Client) CreatureFamilyMedia(creatureFamilyId int, namespace string, loc
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildCrestComponentsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildCrestComponentsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/guild-crest/index", ))
   if err != nil {
     return nil, err
@@ -592,8 +568,8 @@ func (c *Client) GuildCrestComponentsIndex(namespace string, locale string) (*ht
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -615,9 +591,7 @@ func (c *Client) GuildCrestComponentsIndex(namespace string, locale string) (*ht
 //
 // Parameters: 
 //   borderId: The ID of the guild crest border. (int) (required) 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildCrestBorderMedia(borderId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildCrestBorderMedia(borderId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/guild-crest/border/%v", borderId))
   if err != nil {
     return nil, err
@@ -629,8 +603,8 @@ func (c *Client) GuildCrestBorderMedia(borderId int, namespace string, locale st
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -652,9 +626,7 @@ func (c *Client) GuildCrestBorderMedia(borderId int, namespace string, locale st
 //
 // Parameters: 
 //   emblemId: The ID of the guild crest emblem. (int) (required) 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildCrestEmblemMedia(emblemId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildCrestEmblemMedia(emblemId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/guild-crest/emblem/%v", emblemId))
   if err != nil {
     return nil, err
@@ -666,8 +638,8 @@ func (c *Client) GuildCrestEmblemMedia(emblemId int, namespace string, locale st
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -688,9 +660,7 @@ func (c *Client) GuildCrestEmblemMedia(emblemId int, namespace string, locale st
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ItemClassesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) ItemClassesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/item-class/index", ))
   if err != nil {
     return nil, err
@@ -702,8 +672,8 @@ func (c *Client) ItemClassesIndex(namespace string, locale string) (*http.Respon
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -725,9 +695,7 @@ func (c *Client) ItemClassesIndex(namespace string, locale string) (*http.Respon
 //
 // Parameters: 
 //   itemClassId: The ID of the item class. (string) (required) (default: 0)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ItemClass(itemClassId string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) ItemClass(itemClassId string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/item-class/%v", itemClassId))
   if err != nil {
     return nil, err
@@ -739,8 +707,8 @@ func (c *Client) ItemClass(itemClassId string, namespace string, locale string) 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -763,9 +731,7 @@ func (c *Client) ItemClass(itemClassId string, namespace string, locale string) 
 // Parameters: 
 //   itemClassId: The ID of the item class. (string) (required) (default: 0)
 //   itemSubclassId: The ID of the item subclass. (string) (required) (default: 0)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ItemSubclass(itemClassId string, itemSubclassId string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) ItemSubclass(itemClassId string, itemSubclassId string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/item-class/%v/item-subclass/%v", itemClassId, itemSubclassId))
   if err != nil {
     return nil, err
@@ -777,8 +743,8 @@ func (c *Client) ItemSubclass(itemClassId string, itemSubclassId string, namespa
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -800,9 +766,7 @@ func (c *Client) ItemSubclass(itemClassId string, itemSubclassId string, namespa
 //
 // Parameters: 
 //   itemId: The ID of the item. (string) (required) (default: 19019)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Item(itemId string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Item(itemId string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/item/%v", itemId))
   if err != nil {
     return nil, err
@@ -814,8 +778,8 @@ func (c *Client) Item(itemId string, namespace string, locale string) (*http.Res
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -837,9 +801,7 @@ func (c *Client) Item(itemId string, namespace string, locale string) (*http.Res
 //
 // Parameters: 
 //   itemId: The ID of the item. (int) (required) (default: 19019)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ItemMedia(itemId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) ItemMedia(itemId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/item/%v", itemId))
   if err != nil {
     return nil, err
@@ -851,8 +813,8 @@ func (c *Client) ItemMedia(itemId int, namespace string, locale string) (*http.R
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -873,11 +835,10 @@ func (c *Client) ItemMedia(itemId int, namespace string, locale string) (*http.R
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-us)
 //   orderby: The field to sort the result set by. (string)  (default: id)
 //   page: The result page number. (int)  (default: 1)
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search
-func (c *Client) ItemSearch(namespace string, orderby string, page int, search string) (*http.Response, error) {
+func (c *Client) ItemSearch(orderby string, page int, search string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/search/item", ))
   if err != nil {
     return nil, err
@@ -889,7 +850,7 @@ func (c *Client) ItemSearch(namespace string, orderby string, page int, search s
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-us"))
+  q.Add("namespace", fmt.Sprintf("static-%s", c.region))
   q.Add("orderby", stringWithDefault(fmt.Sprint(orderby), "id"))
   q.Add("_page", stringWithDefault(fmt.Sprint(page), "1"))
   q.Add("access-token", c.accessToken)
@@ -912,11 +873,10 @@ func (c *Client) ItemSearch(namespace string, orderby string, page int, search s
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-us)
 //   orderby: The field to sort the result set by. (string)  (default: id)
 //   page: The result page number. (int)  (default: 1)
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search
-func (c *Client) MediaSearch(namespace string, orderby string, page int, search string) (*http.Response, error) {
+func (c *Client) MediaSearch(orderby string, page int, search string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/search/media", ))
   if err != nil {
     return nil, err
@@ -928,7 +888,7 @@ func (c *Client) MediaSearch(namespace string, orderby string, page int, search 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-us"))
+  q.Add("namespace", fmt.Sprintf("static-%s", c.region))
   q.Add("orderby", stringWithDefault(fmt.Sprint(orderby), "id"))
   q.Add("_page", stringWithDefault(fmt.Sprint(page), "1"))
   q.Add("access-token", c.accessToken)
@@ -951,9 +911,7 @@ func (c *Client) MediaSearch(namespace string, orderby string, page int, search 
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PlayableClassesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) PlayableClassesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/playable-class/index", ))
   if err != nil {
     return nil, err
@@ -965,8 +923,8 @@ func (c *Client) PlayableClassesIndex(namespace string, locale string) (*http.Re
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -988,9 +946,7 @@ func (c *Client) PlayableClassesIndex(namespace string, locale string) (*http.Re
 //
 // Parameters: 
 //   classId: The ID of the playable class. (int) (required) (default: 7)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PlayableClass(classId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PlayableClass(classId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/playable-class/%v", classId))
   if err != nil {
     return nil, err
@@ -1002,8 +958,8 @@ func (c *Client) PlayableClass(classId int, namespace string, locale string) (*h
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1025,9 +981,7 @@ func (c *Client) PlayableClass(classId int, namespace string, locale string) (*h
 //
 // Parameters: 
 //   playableClassId: The ID of the playable class. (int) (required) (default: 7)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PlayableClassMedia(playableClassId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PlayableClassMedia(playableClassId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/media/playable-class/%v", playableClassId))
   if err != nil {
     return nil, err
@@ -1039,8 +993,8 @@ func (c *Client) PlayableClassMedia(playableClassId int, namespace string, local
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1061,9 +1015,7 @@ func (c *Client) PlayableClassMedia(playableClassId int, namespace string, local
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PlayableRacesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) PlayableRacesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/playable-race/index", ))
   if err != nil {
     return nil, err
@@ -1075,8 +1027,8 @@ func (c *Client) PlayableRacesIndex(namespace string, locale string) (*http.Resp
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1098,9 +1050,7 @@ func (c *Client) PlayableRacesIndex(namespace string, locale string) (*http.Resp
 //
 // Parameters: 
 //   playableRaceId: The ID of the playable race. (int) (required) (default: 2)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PlayableRace(playableRaceId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PlayableRace(playableRaceId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/playable-race/%v", playableRaceId))
   if err != nil {
     return nil, err
@@ -1112,8 +1062,8 @@ func (c *Client) PlayableRace(playableRaceId int, namespace string, locale strin
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1134,9 +1084,7 @@ func (c *Client) PlayableRace(playableRaceId int, namespace string, locale strin
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PowerTypesIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) PowerTypesIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/power-type/index", ))
   if err != nil {
     return nil, err
@@ -1148,8 +1096,8 @@ func (c *Client) PowerTypesIndex(namespace string, locale string) (*http.Respons
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1171,9 +1119,7 @@ func (c *Client) PowerTypesIndex(namespace string, locale string) (*http.Respons
 //
 // Parameters: 
 //   powerTypeId: The ID of the power type. (int) (required) 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: static-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PowerType(powerTypeId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PowerType(powerTypeId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/power-type/%v", powerTypeId))
   if err != nil {
     return nil, err
@@ -1185,8 +1131,8 @@ func (c *Client) PowerType(powerTypeId int, namespace string, locale string) (*h
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "static-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("static-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1207,9 +1153,7 @@ func (c *Client) PowerType(powerTypeId int, namespace string, locale string) (*h
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPSeasonsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPSeasonsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-season/index", ))
   if err != nil {
     return nil, err
@@ -1221,8 +1165,8 @@ func (c *Client) PvPSeasonsIndex(namespace string, locale string) (*http.Respons
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1244,9 +1188,7 @@ func (c *Client) PvPSeasonsIndex(namespace string, locale string) (*http.Respons
 //
 // Parameters: 
 //   pvpSeasonId: The ID of the PvP season. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPSeason(pvpSeasonId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPSeason(pvpSeasonId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-season/%v", pvpSeasonId))
   if err != nil {
     return nil, err
@@ -1258,8 +1200,8 @@ func (c *Client) PvPSeason(pvpSeasonId int, namespace string, locale string) (*h
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1280,9 +1222,7 @@ func (c *Client) PvPSeason(pvpSeasonId int, namespace string, locale string) (*h
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPRegionIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPRegionIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/index", ))
   if err != nil {
     return nil, err
@@ -1294,8 +1234,8 @@ func (c *Client) PvPRegionIndex(namespace string, locale string) (*http.Response
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1317,9 +1257,7 @@ func (c *Client) PvPRegionIndex(namespace string, locale string) (*http.Response
 //
 // Parameters: 
 //   pvpRegionId: The ID of the PvP region. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPRegionalSeasonIndex(pvpRegionId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPRegionalSeasonIndex(pvpRegionId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/%v/pvp-season/index", pvpRegionId))
   if err != nil {
     return nil, err
@@ -1331,8 +1269,8 @@ func (c *Client) PvPRegionalSeasonIndex(pvpRegionId int, namespace string, local
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1355,9 +1293,7 @@ func (c *Client) PvPRegionalSeasonIndex(pvpRegionId int, namespace string, local
 // Parameters: 
 //   pvpRegionId: The ID of the PvP region. (int) (required) (default: 1)
 //   pvpSeasonId: The ID of the PvP season. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPRegionalSeason(pvpRegionId int, pvpSeasonId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPRegionalSeason(pvpRegionId int, pvpSeasonId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/%v/pvp-season/%v", pvpRegionId, pvpSeasonId))
   if err != nil {
     return nil, err
@@ -1369,8 +1305,8 @@ func (c *Client) PvPRegionalSeason(pvpRegionId int, pvpSeasonId int, namespace s
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1393,9 +1329,7 @@ func (c *Client) PvPRegionalSeason(pvpRegionId int, pvpSeasonId int, namespace s
 // Parameters: 
 //   pvpRegionId: The ID of the PvP region. (int) (required) (default: 1)
 //   pvpSeasonId: The ID of the PvP season. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPLeaderboardsIndex(pvpRegionId int, pvpSeasonId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPLeaderboardsIndex(pvpRegionId int, pvpSeasonId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/%v/pvp-season/%v/pvp-leaderboard/index", pvpRegionId, pvpSeasonId))
   if err != nil {
     return nil, err
@@ -1407,8 +1341,8 @@ func (c *Client) PvPLeaderboardsIndex(pvpRegionId int, pvpSeasonId int, namespac
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1432,9 +1366,7 @@ func (c *Client) PvPLeaderboardsIndex(pvpRegionId int, pvpSeasonId int, namespac
 //   pvpRegionId: The ID of the PvP region. (int) (required) (default: 1)
 //   pvpSeasonId: The ID of the PvP season. (int) (required) (default: 1)
 //   pvpBracket: The PvP bracket type. (string) (required) (default: 3v3)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPLeaderboard(pvpRegionId int, pvpSeasonId int, pvpBracket string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPLeaderboard(pvpRegionId int, pvpSeasonId int, pvpBracket string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/%v/pvp-season/%v/pvp-leaderboard/%v", pvpRegionId, pvpSeasonId, pvpBracket))
   if err != nil {
     return nil, err
@@ -1446,8 +1378,8 @@ func (c *Client) PvPLeaderboard(pvpRegionId int, pvpSeasonId int, pvpBracket str
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1470,9 +1402,7 @@ func (c *Client) PvPLeaderboard(pvpRegionId int, pvpSeasonId int, pvpBracket str
 // Parameters: 
 //   pvpRegionId: The ID of the PvP region. (int) (required) (default: 1)
 //   pvpSeasonId: The ID of the PvP season. (int) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) PvPRewardsIndex(pvpRegionId int, pvpSeasonId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) PvPRewardsIndex(pvpRegionId int, pvpSeasonId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/pvp-region/%v/pvp-season/%v/pvp-reward/index", pvpRegionId, pvpSeasonId))
   if err != nil {
     return nil, err
@@ -1484,8 +1414,8 @@ func (c *Client) PvPRewardsIndex(pvpRegionId int, pvpSeasonId int, namespace str
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1506,9 +1436,7 @@ func (c *Client) PvPRewardsIndex(pvpRegionId int, pvpSeasonId int, namespace str
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) RealmsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) RealmsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/realm/index", ))
   if err != nil {
     return nil, err
@@ -1520,8 +1448,8 @@ func (c *Client) RealmsIndex(namespace string, locale string) (*http.Response, e
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1543,9 +1471,7 @@ func (c *Client) RealmsIndex(namespace string, locale string) (*http.Response, e
 //
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: westfall)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Realm(realmSlug string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Realm(realmSlug string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/realm/%v", realmSlug))
   if err != nil {
     return nil, err
@@ -1557,8 +1483,8 @@ func (c *Client) Realm(realmSlug string, namespace string, locale string) (*http
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1579,11 +1505,10 @@ func (c *Client) Realm(realmSlug string, namespace string, locale string) (*http
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
 //   orderby: The field to sort the result set by. (string)  (default: id)
 //   page: The result page number. (int)  (default: 1)
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search
-func (c *Client) RealmSearch(namespace string, orderby string, page int, search string) (*http.Response, error) {
+func (c *Client) RealmSearch(orderby string, page int, search string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/search/realm", ))
   if err != nil {
     return nil, err
@@ -1595,7 +1520,7 @@ func (c *Client) RealmSearch(namespace string, orderby string, page int, search 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
   q.Add("orderby", stringWithDefault(fmt.Sprint(orderby), "id"))
   q.Add("_page", stringWithDefault(fmt.Sprint(page), "1"))
   q.Add("access-token", c.accessToken)
@@ -1618,9 +1543,7 @@ func (c *Client) RealmSearch(namespace string, orderby string, page int, search 
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) RegionsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) RegionsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/region/index", ))
   if err != nil {
     return nil, err
@@ -1632,8 +1555,8 @@ func (c *Client) RegionsIndex(namespace string, locale string) (*http.Response, 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1655,9 +1578,7 @@ func (c *Client) RegionsIndex(namespace string, locale string) (*http.Response, 
 //
 // Parameters: 
 //   regionId: The ID of the region. (int) (required) (default: 41)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Region(regionId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Region(regionId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/region/%v", regionId))
   if err != nil {
     return nil, err
@@ -1669,8 +1590,8 @@ func (c *Client) Region(regionId int, namespace string, locale string) (*http.Re
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1691,9 +1612,7 @@ func (c *Client) Region(regionId int, namespace string, locale string) (*http.Re
 // CnRegion: true
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: dynamic-classic-cn)
-//   locale: The locale to reflect in localized data. (string)  (default: zh_CN)
-func (c *Client) WoWTokenIndexCN(namespace string, locale string) (*http.Response, error) {
+func (c *Client) WoWTokenIndexCN() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/token/index", ))
   if err != nil {
     return nil, err
@@ -1705,8 +1624,8 @@ func (c *Client) WoWTokenIndexCN(namespace string, locale string) (*http.Respons
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "dynamic-classic-cn"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "zh_CN"))
+  q.Add("namespace", fmt.Sprintf("dynamic-classic-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   

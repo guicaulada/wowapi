@@ -28,6 +28,7 @@ type Client struct {
   clientSecret string
   accessToken string
   region string
+  locale string
   url string
   httpClient *http.Client
 }
@@ -65,7 +66,7 @@ func (c *Client) getAccessToken() error {
   return nil
 }
 
-func NewClient(clientId string, clientSecret string, region string, httpClient *http.Client) (*Client, error) {
+func NewClient(clientId string, clientSecret string, region string, locale string, httpClient *http.Client) (*Client, error) {
   if httpClient == nil {
     httpClient = http.DefaultClient
   }
@@ -74,6 +75,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
     clientSecret: clientSecret,
     httpClient: httpClient,
     region: region,
+    locale: locale,
     url: fmt.Sprintf(BlizzardAPIUrl, region),
   }
   if err := client.getAccessToken(); err != nil {
@@ -81,7 +83,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
   }
   return client, nil
 }
-{{range .Spec.Resources}}{{$resource := .}}{{range .Methods}}
+{{range $resource := .Spec.Resources}}{{range .Methods}}
 // Resource: {{$resource.Name}}
 //
 // Name: {{.Name}}
@@ -94,10 +96,10 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
 //
 // CnRegion: {{.CnRegion}}
 //
-// Parameters: {{range .Parameters}}{{if not (contains .Description "(example search field)")}}
-//   {{sanitize .Name}}: {{.Description}} ({{replace .Type "integer" "int"}}) {{if .Required}}(required){{end}} {{if .DefaultValue}}(default: {{.DefaultValue}}){{end}}{{end}}{{end}}{{if contains .Path "/search/"}}
+// Parameters: {{range (filterArgParams .Parameters)}}
+//   {{sanitize .Name}}: {{.Description}} ({{replace .Type "integer" "int"}}) {{if .Required}}(required){{end}} {{if .DefaultValue}}(default: {{.DefaultValue}}){{end}}{{end}}{{if contains .Path "/search/"}}
 //   search: Search query string. For more detail see the Search Guide: https://develop.battle.net/documentation/world-of-warcraft/guides/search{{end}}
-func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := .Parameters}}{{if not (contains .Description "(example search field)")}}{{if $i}}, {{end}}{{sanitize $p.Name}} {{replace $p.Type "integer" "int"}}{{end}}{{end}}{{if contains .Path "/search/"}}, search string{{end}}) (*http.Response, error) {
+func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := (filterArgParams .Parameters)}}{{if $i}}, {{end}}{{sanitize $p.Name}} {{replace $p.Type "integer" "int"}}{{end}}{{if contains .Path "/search/"}}, search string{{end}}) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf({{sprintUrl .Path}}))
   if err != nil {
     return nil, err
@@ -109,7 +111,7 @@ func (c *Client) {{sanitize (replace .Name " " "")}}({{range $i, $p := .Paramete
   }
   {{if .HttpMethod | eq "GET"}}
   q := req.URL.Query() {{range .Parameters}}{{if not (isPathParam .Name)}}{{if not (contains .Description "(example search field)")}}
-  q.Add("{{.Name}}", stringWithDefault(fmt.Sprint({{sanitize .Name}}), "{{.DefaultValue}}")){{end}}{{end}}{{end}}
+  {{if and (not (.Name | eq "namespace")) (not (.Name | eq "locale"))}}q.Add("{{.Name}}", stringWithDefault(fmt.Sprint({{sanitize .Name}}), "{{.DefaultValue}}")){{end}}{{if .Name | eq "namespace"}}q.Add("{{.Name}}", fmt.Sprintf("{{trimRightN .DefaultValue 3}}-%s", c.region)){{end}}{{if .Name | eq "locale"}}q.Add("{{.Name}}", c.locale){{end}}{{end}}{{end}}{{end}}
   q.Add("access-token", c.accessToken)
   {{if contains .Path "/search/"}}req.URL.RawQuery = fmt.Sprintf("%s&%s", q.Encode(), search){{else}}req.URL.RawQuery = q.Encode(){{end}}
   {{end}}

@@ -75,6 +75,21 @@ func removeHtml(str string) string {
 	return nonSpacedPeriodRegex.ReplaceAllString(htmlTagsRegex.ReplaceAllString(str, ""), ". $1")
 }
 
+func trimRightN(str string, n int) string {
+	return str[:len(str)-n]
+}
+
+func filterArgParams(params []Parameter) []Parameter {
+	args := make([]Parameter, 0)
+	for _, p := range params {
+		if !(strings.Contains(p.Description, "(example search field)")) &&
+			!(p.Name == "namespace" || p.Name == "locale") {
+			args = append(args, p)
+		}
+	}
+	return args
+}
+
 func main() {
 	if len(os.Args) < 4 {
 		log.Fatalln("Usage: ./generate <api-spec> <output-file> <package-name>")
@@ -99,12 +114,14 @@ func main() {
 	}
 
 	funcs := template.FuncMap{
-		"replace":     strings.ReplaceAll,
-		"sanitize":    sanitize,
-		"sprintUrl":   sprintUrl,
-		"isPathParam": isPathParam,
-		"removeHtml":  removeHtml,
-		"contains":    strings.Contains,
+		"replace":         strings.ReplaceAll,
+		"sanitize":        sanitize,
+		"sprintUrl":       sprintUrl,
+		"isPathParam":     isPathParam,
+		"removeHtml":      removeHtml,
+		"contains":        strings.Contains,
+		"trimRightN":      trimRightN,
+		"filterArgParams": filterArgParams,
 	}
 
 	tmpl, err := template.New("api").Funcs(funcs).Parse(apiTemplate)

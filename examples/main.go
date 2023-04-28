@@ -12,14 +12,15 @@ const (
 	myClientId     = "myClientId"
 	myClientSecret = "myClientSecret"
 	myRegion       = "us"
+	myLocale       = "en_US"
 )
 
 func main() {
-	profileClient, err := profile.NewClient(myClientId, myClientSecret, myRegion, nil)
+	profileClient, err := profile.NewClient(myClientId, myClientSecret, myRegion, myLocale, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	res, err := profileClient.CharacterProfileSummary("tichondrius", "sighmir", "profile-us", "en_US")
+	res, err := profileClient.CharacterProfileSummary("tichondrius", "sighmir")
 	if err != nil {
 		log.Fatalln(err)
 	}

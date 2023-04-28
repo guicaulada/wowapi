@@ -28,6 +28,7 @@ type Client struct {
   clientSecret string
   accessToken string
   region string
+  locale string
   url string
   httpClient *http.Client
 }
@@ -65,7 +66,7 @@ func (c *Client) getAccessToken() error {
   return nil
 }
 
-func NewClient(clientId string, clientSecret string, region string, httpClient *http.Client) (*Client, error) {
+func NewClient(clientId string, clientSecret string, region string, locale string, httpClient *http.Client) (*Client, error) {
   if httpClient == nil {
     httpClient = http.DefaultClient
   }
@@ -74,6 +75,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
     clientSecret: clientSecret,
     httpClient: httpClient,
     region: region,
+    locale: locale,
     url: fmt.Sprintf(BlizzardAPIUrl, region),
   }
   if err := client.getAccessToken(); err != nil {
@@ -95,9 +97,7 @@ func NewClient(clientId string, clientSecret string, region string, httpClient *
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountProfileSummary(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountProfileSummary() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow", ))
   if err != nil {
     return nil, err
@@ -109,8 +109,8 @@ func (c *Client) AccountProfileSummary(namespace string, locale string) (*http.R
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -133,9 +133,7 @@ func (c *Client) AccountProfileSummary(namespace string, locale string) (*http.R
 // Parameters: 
 //   realmId: The ID of the character's realm. (int) (required) (default: 1)
 //   characterId: The ID of the character. (int) (required) (default: 12345)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) ProtectedCharacterProfileSummary(realmId int, characterId int, namespace string, locale string) (*http.Response, error) {
+func (c *Client) ProtectedCharacterProfileSummary(realmId int, characterId int) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/protected-character/%v-%v", realmId, characterId))
   if err != nil {
     return nil, err
@@ -147,8 +145,8 @@ func (c *Client) ProtectedCharacterProfileSummary(realmId int, characterId int, 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -169,9 +167,7 @@ func (c *Client) ProtectedCharacterProfileSummary(realmId int, characterId int, 
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountCollectionsIndex(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountCollectionsIndex() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/collections", ))
   if err != nil {
     return nil, err
@@ -183,8 +179,8 @@ func (c *Client) AccountCollectionsIndex(namespace string, locale string) (*http
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -205,9 +201,7 @@ func (c *Client) AccountCollectionsIndex(namespace string, locale string) (*http
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountMountsCollectionSummary(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountMountsCollectionSummary() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/collections/mounts", ))
   if err != nil {
     return nil, err
@@ -219,8 +213,8 @@ func (c *Client) AccountMountsCollectionSummary(namespace string, locale string)
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -241,9 +235,7 @@ func (c *Client) AccountMountsCollectionSummary(namespace string, locale string)
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountPetsCollectionSummary(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountPetsCollectionSummary() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/collections/pets", ))
   if err != nil {
     return nil, err
@@ -255,8 +247,8 @@ func (c *Client) AccountPetsCollectionSummary(namespace string, locale string) (
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -277,9 +269,7 @@ func (c *Client) AccountPetsCollectionSummary(namespace string, locale string) (
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountToysCollectionSummary(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountToysCollectionSummary() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/collections/toys", ))
   if err != nil {
     return nil, err
@@ -291,8 +281,8 @@ func (c *Client) AccountToysCollectionSummary(namespace string, locale string) (
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -313,9 +303,7 @@ func (c *Client) AccountToysCollectionSummary(namespace string, locale string) (
 // CnRegion: false
 //
 // Parameters: 
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) AccountHeirloomsCollectionSummary(namespace string, locale string) (*http.Response, error) {
+func (c *Client) AccountHeirloomsCollectionSummary() (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/user/wow/collections/heirlooms", ))
   if err != nil {
     return nil, err
@@ -327,8 +315,8 @@ func (c *Client) AccountHeirloomsCollectionSummary(namespace string, locale stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -351,9 +339,7 @@ func (c *Client) AccountHeirloomsCollectionSummary(namespace string, locale stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterAchievementsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterAchievementsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/achievements", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -365,8 +351,8 @@ func (c *Client) CharacterAchievementsSummary(realmSlug string, characterName st
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -389,9 +375,7 @@ func (c *Client) CharacterAchievementsSummary(realmSlug string, characterName st
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterAchievementStatistics(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterAchievementStatistics(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/achievements/statistics", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -403,8 +387,8 @@ func (c *Client) CharacterAchievementStatistics(realmSlug string, characterName 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -427,9 +411,7 @@ func (c *Client) CharacterAchievementStatistics(realmSlug string, characterName 
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterAppearanceSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterAppearanceSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/appearance", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -441,8 +423,8 @@ func (c *Client) CharacterAppearanceSummary(realmSlug string, characterName stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -465,9 +447,7 @@ func (c *Client) CharacterAppearanceSummary(realmSlug string, characterName stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterCollectionsIndex(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterCollectionsIndex(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/collections", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -479,8 +459,8 @@ func (c *Client) CharacterCollectionsIndex(realmSlug string, characterName strin
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -503,9 +483,7 @@ func (c *Client) CharacterCollectionsIndex(realmSlug string, characterName strin
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterMountsCollectionSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterMountsCollectionSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/collections/mounts", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -517,8 +495,8 @@ func (c *Client) CharacterMountsCollectionSummary(realmSlug string, characterNam
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -541,9 +519,7 @@ func (c *Client) CharacterMountsCollectionSummary(realmSlug string, characterNam
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterPetsCollectionSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterPetsCollectionSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/collections/pets", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -555,8 +531,8 @@ func (c *Client) CharacterPetsCollectionSummary(realmSlug string, characterName 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -579,9 +555,7 @@ func (c *Client) CharacterPetsCollectionSummary(realmSlug string, characterName 
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterToysCollectionSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterToysCollectionSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/collections/toys", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -593,8 +567,8 @@ func (c *Client) CharacterToysCollectionSummary(realmSlug string, characterName 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -617,9 +591,7 @@ func (c *Client) CharacterToysCollectionSummary(realmSlug string, characterName 
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterHeirloomsCollectionSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterHeirloomsCollectionSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/collections/heirlooms", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -631,8 +603,8 @@ func (c *Client) CharacterHeirloomsCollectionSummary(realmSlug string, character
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -655,9 +627,7 @@ func (c *Client) CharacterHeirloomsCollectionSummary(realmSlug string, character
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterEncountersSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterEncountersSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/encounters", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -669,8 +639,8 @@ func (c *Client) CharacterEncountersSummary(realmSlug string, characterName stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -693,9 +663,7 @@ func (c *Client) CharacterEncountersSummary(realmSlug string, characterName stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterDungeons(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterDungeons(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/encounters/dungeons", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -707,8 +675,8 @@ func (c *Client) CharacterDungeons(realmSlug string, characterName string, names
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -731,9 +699,7 @@ func (c *Client) CharacterDungeons(realmSlug string, characterName string, names
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterRaids(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterRaids(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/encounters/raids", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -745,8 +711,8 @@ func (c *Client) CharacterRaids(realmSlug string, characterName string, namespac
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -769,9 +735,7 @@ func (c *Client) CharacterRaids(realmSlug string, characterName string, namespac
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterEquipmentSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterEquipmentSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/equipment", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -783,8 +747,8 @@ func (c *Client) CharacterEquipmentSummary(realmSlug string, characterName strin
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -807,9 +771,7 @@ func (c *Client) CharacterEquipmentSummary(realmSlug string, characterName strin
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterHunterPetsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterHunterPetsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/hunter-pets", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -821,8 +783,8 @@ func (c *Client) CharacterHunterPetsSummary(realmSlug string, characterName stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -845,9 +807,7 @@ func (c *Client) CharacterHunterPetsSummary(realmSlug string, characterName stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterMediaSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterMediaSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/character-media", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -859,8 +819,8 @@ func (c *Client) CharacterMediaSummary(realmSlug string, characterName string, n
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -883,9 +843,7 @@ func (c *Client) CharacterMediaSummary(realmSlug string, characterName string, n
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterMythicKeystoneProfileIndex(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterMythicKeystoneProfileIndex(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/mythic-keystone-profile", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -897,8 +855,8 @@ func (c *Client) CharacterMythicKeystoneProfileIndex(realmSlug string, character
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -922,9 +880,7 @@ func (c *Client) CharacterMythicKeystoneProfileIndex(realmSlug string, character
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
 //   seasonId: The ID of the Mythic Keystone season. (string) (required) (default: 1)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterMythicKeystoneSeasonDetails(realmSlug string, characterName string, seasonId string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterMythicKeystoneSeasonDetails(realmSlug string, characterName string, seasonId string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/mythic-keystone-profile/season/%v", realmSlug, characterName, seasonId))
   if err != nil {
     return nil, err
@@ -936,8 +892,8 @@ func (c *Client) CharacterMythicKeystoneSeasonDetails(realmSlug string, characte
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -960,9 +916,7 @@ func (c *Client) CharacterMythicKeystoneSeasonDetails(realmSlug string, characte
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterProfessionsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterProfessionsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/professions", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -974,8 +928,8 @@ func (c *Client) CharacterProfessionsSummary(realmSlug string, characterName str
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -998,9 +952,7 @@ func (c *Client) CharacterProfessionsSummary(realmSlug string, characterName str
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterProfileSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterProfileSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1012,8 +964,8 @@ func (c *Client) CharacterProfileSummary(realmSlug string, characterName string,
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1036,9 +988,7 @@ func (c *Client) CharacterProfileSummary(realmSlug string, characterName string,
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterProfileStatus(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterProfileStatus(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/status", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1050,8 +1000,8 @@ func (c *Client) CharacterProfileStatus(realmSlug string, characterName string, 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1075,9 +1025,7 @@ func (c *Client) CharacterProfileStatus(realmSlug string, characterName string, 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
 //   pvpBracket: The PvP bracket type. (string) (required) (default: 3v3)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterPvPBracketStatistics(realmSlug string, characterName string, pvpBracket string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterPvPBracketStatistics(realmSlug string, characterName string, pvpBracket string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/pvp-bracket/%v", realmSlug, characterName, pvpBracket))
   if err != nil {
     return nil, err
@@ -1089,8 +1037,8 @@ func (c *Client) CharacterPvPBracketStatistics(realmSlug string, characterName s
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1113,9 +1061,7 @@ func (c *Client) CharacterPvPBracketStatistics(realmSlug string, characterName s
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterPvPSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterPvPSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/pvp-summary", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1127,8 +1073,8 @@ func (c *Client) CharacterPvPSummary(realmSlug string, characterName string, nam
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1151,9 +1097,7 @@ func (c *Client) CharacterPvPSummary(realmSlug string, characterName string, nam
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterQuests(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterQuests(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/quests", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1165,8 +1109,8 @@ func (c *Client) CharacterQuests(realmSlug string, characterName string, namespa
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1189,9 +1133,7 @@ func (c *Client) CharacterQuests(realmSlug string, characterName string, namespa
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterCompletedQuests(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterCompletedQuests(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/quests/completed", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1203,8 +1145,8 @@ func (c *Client) CharacterCompletedQuests(realmSlug string, characterName string
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1227,9 +1169,7 @@ func (c *Client) CharacterCompletedQuests(realmSlug string, characterName string
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterReputationsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterReputationsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/reputations", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1241,8 +1181,8 @@ func (c *Client) CharacterReputationsSummary(realmSlug string, characterName str
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1265,9 +1205,7 @@ func (c *Client) CharacterReputationsSummary(realmSlug string, characterName str
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterSoulbinds(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterSoulbinds(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/soulbinds", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1279,8 +1217,8 @@ func (c *Client) CharacterSoulbinds(realmSlug string, characterName string, name
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1303,9 +1241,7 @@ func (c *Client) CharacterSoulbinds(realmSlug string, characterName string, name
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterSpecializationsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterSpecializationsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/specializations", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1317,8 +1253,8 @@ func (c *Client) CharacterSpecializationsSummary(realmSlug string, characterName
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1341,9 +1277,7 @@ func (c *Client) CharacterSpecializationsSummary(realmSlug string, characterName
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterStatisticsSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterStatisticsSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/statistics", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1355,8 +1289,8 @@ func (c *Client) CharacterStatisticsSummary(realmSlug string, characterName stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1379,9 +1313,7 @@ func (c *Client) CharacterStatisticsSummary(realmSlug string, characterName stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   characterName: The lowercase name of the character. (string) (required) (default: charactername)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) CharacterTitlesSummary(realmSlug string, characterName string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) CharacterTitlesSummary(realmSlug string, characterName string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/profile/wow/character/%v/%v/titles", realmSlug, characterName))
   if err != nil {
     return nil, err
@@ -1393,8 +1325,8 @@ func (c *Client) CharacterTitlesSummary(realmSlug string, characterName string, 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1417,9 +1349,7 @@ func (c *Client) CharacterTitlesSummary(realmSlug string, characterName string, 
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   nameSlug: The slug of the guild. (string) (required) (default: guild-slug)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) Guild(realmSlug string, nameSlug string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) Guild(realmSlug string, nameSlug string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/guild/%v/%v", realmSlug, nameSlug))
   if err != nil {
     return nil, err
@@ -1431,8 +1361,8 @@ func (c *Client) Guild(realmSlug string, nameSlug string, namespace string, loca
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1455,9 +1385,7 @@ func (c *Client) Guild(realmSlug string, nameSlug string, namespace string, loca
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   nameSlug: The slug of the guild. (string) (required) (default: guild-slug)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildActivity(realmSlug string, nameSlug string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildActivity(realmSlug string, nameSlug string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/guild/%v/%v/activity", realmSlug, nameSlug))
   if err != nil {
     return nil, err
@@ -1469,8 +1397,8 @@ func (c *Client) GuildActivity(realmSlug string, nameSlug string, namespace stri
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1493,9 +1421,7 @@ func (c *Client) GuildActivity(realmSlug string, nameSlug string, namespace stri
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   nameSlug: The slug of the guild. (string) (required) (default: guild-slug)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildAchievements(realmSlug string, nameSlug string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildAchievements(realmSlug string, nameSlug string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/guild/%v/%v/achievements", realmSlug, nameSlug))
   if err != nil {
     return nil, err
@@ -1507,8 +1433,8 @@ func (c *Client) GuildAchievements(realmSlug string, nameSlug string, namespace 
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
@@ -1531,9 +1457,7 @@ func (c *Client) GuildAchievements(realmSlug string, nameSlug string, namespace 
 // Parameters: 
 //   realmSlug: The slug of the realm. (string) (required) (default: tichondrius)
 //   nameSlug: The slug of the guild. (string) (required) (default: guild-slug)
-//   namespace: The namespace to use to locate this document. (string) (required) (default: profile-us)
-//   locale: The locale to reflect in localized data. (string)  (default: en_US)
-func (c *Client) GuildRoster(realmSlug string, nameSlug string, namespace string, locale string) (*http.Response, error) {
+func (c *Client) GuildRoster(realmSlug string, nameSlug string) (*http.Response, error) {
   path, err := url.JoinPath(c.url, fmt.Sprintf("/data/wow/guild/%v/%v/roster", realmSlug, nameSlug))
   if err != nil {
     return nil, err
@@ -1545,8 +1469,8 @@ func (c *Client) GuildRoster(realmSlug string, nameSlug string, namespace string
   }
   
   q := req.URL.Query() 
-  q.Add("namespace", stringWithDefault(fmt.Sprint(namespace), "profile-us"))
-  q.Add("locale", stringWithDefault(fmt.Sprint(locale), "en_US"))
+  q.Add("namespace", fmt.Sprintf("profile-%s", c.region))
+  q.Add("locale", c.locale)
   q.Add("access-token", c.accessToken)
   req.URL.RawQuery = q.Encode()
   
